@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Color Codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+UNDERLINE='\033[4m'
+RESET='\033[0m'
+
 # Determine the directory where the script is located
 DIR="$(dirname "$(realpath "$0")")"
 
@@ -15,15 +23,17 @@ fi
 display_data() {
     local lang="$1"
     if ! grep -q "^\[$lang\]$" "$DATA_FILE"; then
-        echo -e "\nLanguage '$lang' not found.\n"
+        echo
+        echo -e "\n${RED}Language '$lang' not found.${RESET}\n"
         return
     fi
     awk -v lang="$lang" '/^\[/{p=0} $0 == "[" lang "]" {p=1} p' "$DATA_FILE" | {
         read -r line
         if [[ -z $line ]]; then
-            echo -e "\nNo current resources for $lang.\n"
+            echo
+            echo -e "\n${YELLOW}No current resources for $lang.${RESET}\n"
         else
-            echo -e "\n$line"
+            echo -e "\n${BLUE}$line${RESET}"
             while read -r line; do
                 if [[ $line =~ ^\[.*\]$ ]]; then
                     break
@@ -36,12 +46,16 @@ display_data() {
 
 # Function to add a new language
 add_language() {
-    echo -e "\nEnter the name of the new language:"
+    echo
+    echo -e "\n>> Enter the name of the new language:"
+    echo
     read -r lang
     if grep -q "^\[$lang\]$" "$DATA_FILE"; then
-        echo -e "\nLanguage already exists.\n"
+        echo
+        echo -e "\n${RED}Language already exists.${RESET}\n"
     else
-        echo "Enter the categories for $lang (comma-separated, e.g., characters,vocab,grammar):"
+        echo
+        echo ">> Enter the categories for $lang (comma-separated, e.g., characters,vocab,grammar):"
         read -r categories
         echo -e "\n[$lang]" >> "$DATA_FILE"
         echo
@@ -50,45 +64,55 @@ add_language() {
         for category in ${categories//,/ }; do
             echo "$category goal: 0" >> "$DATA_FILE"
         done
+        echo -e "\n${GREEN}Language '$lang' added with categories: $categories.${RESET}\n"
     fi
 }
 
 # Function to list all languages
 list_languages() {
     if ! grep -q '^\[.*\]$' "$DATA_FILE"; then
-        echo -e "\nNo current languages.\n"
+        echo
+        echo -e "\n${YELLOW}No current languages.${RESET}\n"
     else
-        echo -e "\nCurrent languages:\n"
+        echo -e "\n${BLUE}Current languages:${RESET}\n"
         grep -o '^\[.*\]$' "$DATA_FILE" | sed 's/[\[\]]//g'
         echo
     fi
+    echo
 }
 
 # Function to add a new resource to a selected language
 add_resource() {
     local lang="$1"
     if ! grep -q "^\[$lang\]$" "$DATA_FILE"; then
-        echo -e "\nLanguage '$lang' not found.\b"
+        echo
+        echo -e "\n${RED}Language '$lang' not found.${RESET}\b"
         return
     fi
-    echo -e "\nEnter a new daily resource for $lang:"
+    echo
+    echo -e "\n>> Enter a new daily resource for $lang:"
+    echo
     read -r resource
     awk -v lang="$lang" -v res="$resource" '
         $0 == "[" lang "]" {print; getline; print; print "- " res; next}
         1' "$DATA_FILE" > tmpfile && mv tmpfile "$DATA_FILE"
-    echo -e "\nResource added.\n"
+    echo -e "\n${GREEN}Resource added.${RESET}\n"
+    echo
 }
 
 # Function to update the goals for a selected language
 update_goal() {
     local lang="$1"
     if ! grep -q "^\[$lang\]$" "$DATA_FILE"; then
-        echo -e "\nLanguage '$lang' not found.\n"
+        echo
+        echo -e "\n${RED}Language '$lang' not found.${RESET}\n"
         return
     fi
-    echo -e "\nEnter the category to update:"
+    echo
+    echo -e "\n>> Enter the category to update:"
     read -r category
-    echo -e "\nEnter the new goal count for $category:"
+    echo
+    echo -e "\n>> Enter the new goal count for $category:"
     read -r count
 
     awk -v lang="$lang" -v category="$category" -v count="$count" '
@@ -96,12 +120,14 @@ update_goal() {
         inLang && $1 == category {print category " goal: " count; inLang=0; next}
         {print}
     ' "$DATA_FILE" > tmpfile && mv tmpfile "$DATA_FILE"
-    echo -e "\nGoal updated.\n"
+    echo -e "\n${GREEN}Goal updated.${RESET}\n"
+    echo
 }
 
 # Main menu
 while true; do
-    echo -e "\nSelect an option:"
+    echo -e "=================================="
+    echo -e "\n${UNDERLINE}Select an option:${RESET}"
     echo
     echo "1. Display Daily Resources and Goals"
     echo "2. Add a Daily Resource"
@@ -115,27 +141,30 @@ while true; do
     case $option in
         1)
             if ! grep -q '^\[.*\]$' "$DATA_FILE"; then
-                echo -e "\nNo current languages.\n"
+                echo -e "\n${YELLOW}No current languages.${RESET}\n"
             else
-                echo -e "\nEnter the language:"
+                echo -e "\n>> Enter the language:"
+                echo
                 read -r lang
                 display_data "$lang"
             fi
             ;;
         2)
             if ! grep -q '^\[.*\]$' "$DATA_FILE"; then
-                echo -e "\nNo current languages.\n"
+                echo -e "\n${YELLOW}No current languages.${RESET}\n"
             else
-                echo -e "\nEnter the language:"
+                echo -e "\n>> Enter the language:"
+                echo
                 read -r lang
                 add_resource "$lang"
             fi
             ;;
         3)
             if ! grep -q '^\[.*\]$' "$DATA_FILE"; then
-                echo -e "\nNo current languages.\n"
+                echo -e "\n${YELLOW}No current languages.${RESET}\n"
             else
-                echo -e "\nEnter the language:"
+                echo -e "\n>> Enter the language:"
+                echo
                 read -r lang
                 update_goal "$lang"
             fi
@@ -151,7 +180,7 @@ while true; do
             break
             ;;
         *)
-            echo -e "\nInvalid option. Please choose 1, 2, 3, 4, 5, or 6.\n"
+            echo -e "\n${RED}Invalid option. Please choose 1, 2, 3, 4, 5, or 6.${RESET}\n"
             ;;
     esac
 done
