@@ -47,16 +47,24 @@ display_data() {
 # Function to add a new language
 add_language() {
     echo
-    echo -e "\n>> Enter the name of the new language:"
+    echo -e "\n>> Enter the name of the new language (or type 'back' to return to the menu):"
     echo
     read -r lang
+    if [[ "$lang" == "back" ]]; then
+        echo -e "\n${YELLOW}Returning to the menu.${RESET}\n"
+        return
+    fi
     if grep -q "^\[$lang\]$" "$DATA_FILE"; then
         echo
         echo -e "\n${RED}Language already exists.${RESET}\n"
     else
         echo
-        echo ">> Enter the categories for $lang (comma-separated, e.g., characters,vocab,grammar):"
+        echo ">> Enter the categories for $lang (comma-separated, e.g., characters,vocab,grammar) (or type 'back' to return to the menu):"
         read -r categories
+        if [[ "$categories" == "back" ]]; then
+            echo -e "\n${YELLOW}Returning to the menu.${RESET}\n"
+            return
+        fi
         echo -e "\n[$lang]" >> "$DATA_FILE"
         echo
         echo "Daily Resources:" >> "$DATA_FILE"
@@ -90,9 +98,13 @@ add_resource() {
         return
     fi
     echo
-    echo -e "\n>> Enter a new daily resource for $lang:"
+    echo -e "\n>> Enter a new daily resource for $lang (or type 'back' to return to the menu):"
     echo
     read -r resource
+    if [[ "$resource" == "back" ]]; then
+        echo -e "\n${YELLOW}Returning to the menu.${RESET}\n"
+        return
+    fi
     awk -v lang="$lang" -v res="$resource" '
         $0 == "[" lang "]" {print; getline; print; print "- " res; next}
         1' "$DATA_FILE" > tmpfile && mv tmpfile "$DATA_FILE"
@@ -109,11 +121,20 @@ update_goal() {
         return
     fi
     echo
-    echo -e "\n>> Enter the category to update:"
+    echo -e "\n>> Enter the category to update (or type 'back' to return to the menu):"
     read -r category
     echo
-    echo -e "\n>> Enter the new goal count for $category:"
+    if [[ "$category" == "back" ]]; then
+        echo -e "\n${YELLOW}Returning to the menu.${RESET}\n"
+        return
+    fi
+    echo -e "\n>> Enter the new goal count for $category (or type 'back' to return to the menu):"
     read -r count
+    echo
+        if [[ "$count" == "back" ]]; then
+        echo -e "\n${YELLOW}Returning to the menu.${RESET}\n"
+        return
+    fi
 
     awk -v lang="$lang" -v category="$category" -v count="$count" '
         $0 == "[" lang "]" {inLang=1}
@@ -143,30 +164,42 @@ while true; do
             if ! grep -q '^\[.*\]$' "$DATA_FILE"; then
                 echo -e "\n${YELLOW}No current languages.${RESET}\n"
             else
-                echo -e "\n>> Enter the language:"
+                echo -e "\n>> Enter the language (or type 'back' to return to the menu):"
                 echo
                 read -r lang
-                display_data "$lang"
+                if [[ "$lang" == "back" ]]; then
+                    echo -e "\n${YELLOW}Returning to the menu.${RESET}\n"
+                else
+                    display_data "$lang"
+                fi
             fi
             ;;
         2)
             if ! grep -q '^\[.*\]$' "$DATA_FILE"; then
                 echo -e "\n${YELLOW}No current languages.${RESET}\n"
             else
-                echo -e "\n>> Enter the language:"
+                echo -e "\n>> Enter the language (or type 'back' to return to the menu):"
                 echo
                 read -r lang
-                add_resource "$lang"
+                if [[ "$lang" == "back" ]]; then
+                    echo -e "\n${YELLOW}Returning to the menu.${RESET}\n"
+                else
+                    add_resource "$lang"
+                fi
             fi
             ;;
         3)
             if ! grep -q '^\[.*\]$' "$DATA_FILE"; then
                 echo -e "\n${YELLOW}No current languages.${RESET}\n"
             else
-                echo -e "\n>> Enter the language:"
+                echo -e "\n>> Enter the language (or type 'back' to return to the menu):"
                 echo
                 read -r lang
-                update_goal "$lang"
+                if [[ "$lang" == "back" ]]; then
+                    echo -e "\n${YELLOW}Returning to the menu.${RESET}\n"
+                else
+                    update_goal "$lang"
+                fi
             fi
             ;;
         4)
