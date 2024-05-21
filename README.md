@@ -13,7 +13,7 @@ A simple personal script to track language resources and related goals from the 
 2. Make the script executable
    
    ```sh
-   chmod +x daily_lang_checkin.sh"
+   chmod +x daily_lang_checkin.sh
    ```
 3. Run the script
 
